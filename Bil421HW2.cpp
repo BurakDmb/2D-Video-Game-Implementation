@@ -9,29 +9,6 @@
 #  include <GL/glut.h>
 #endif
 //Burak Han Demirbilek - 151201022
-
-double randomize(int maxVal);
-void printThings();
-int calcGlutToGLCord(int y);
-void drawThing(GLfloat x, GLfloat y, int level);
-void reCalcCoords();
-void pauseGame();
-void singleStep();
-void printDebug();
-void createBomb(int x, int y);
-// global variable declarations
-
-GLint windowHeight = 800, windowWidth = 800; //global windowHeight and windowWidth variables, default is 400x400
-int numberOfThings = 20;
-GLfloat thingWidth = 0.1;
-GLfloat thingHeigth = 0.1;
-GLfloat thingVelocityMax = 0.25;
-GLfloat bombWidth = 0.4;
-GLfloat bombHeigth = 0.4;
-int pause = 0;
-int gameOver = 0;
-int score = 0;
-int FPS = 60;
 typedef struct Thing {
 	GLfloat x;
 	GLfloat y;
@@ -46,9 +23,38 @@ typedef struct bomb {
 	GLfloat level;
 	struct bomb * next;
 } bomb_t;
+double randomize(int maxVal);
+void printThings();
+int calcGlutToGLCord(int y);
+void drawThing(GLfloat x, GLfloat y, int level);
+void reCalcCoords();
+void pauseGame();
+void singleStep();
+void printDebug();
+void createBomb(GLfloat x, GLfloat y);
+void printBombs();
+void drawBomb(GLfloat x, GLfloat y, int level);
+void reCalcBombs();
+void levelUpBomb(bomb_t * tmpBomb);
+void checkBombIntersection(bomb_t *tmpBomb);
+// global variable declarations
+
+GLint windowHeight = 800, windowWidth = 800; //global windowHeight and windowWidth variables, default is 400x400
+int numberOfThings = 20;
+GLfloat thingWidth = 0.1;
+GLfloat thingHeigth = 0.1;
+GLfloat thingVelocityMax = 0.25;
+GLfloat bombWidth = 0.04;
+GLfloat bombHeigth = 0.04;
+int pause = 0;
+int gameOver = 0;
+int score = 0;
+int FPS = 60;
+int scoreLevel[5] = { -4000,-2000,-1000,1000,2000 };
+
 
 struct Thing things[20];
-bomb_t * head = NULL;
+bomb_t * bombHead = NULL;
 
 
 void createThings() {
@@ -56,8 +62,8 @@ void createThings() {
 	for (i = 0; i < numberOfThings; i++) {
 		struct Thing *tmpThing;
 		tmpThing = (Thing*)malloc(sizeof(struct Thing));
-		tmpThing->x = randomize(1.0/thingWidth)*thingWidth ;
-		tmpThing->y = (randomize(1.0 / thingWidth) +1)*thingHeigth ;
+		tmpThing->x = randomize(1.0 / thingWidth)*thingWidth + thingWidth / 2;
+		tmpThing->y = (randomize(1.0 / thingHeigth) + 1)*thingHeigth - thingHeigth / 2;
 		tmpThing->veloX = randomize(thingVelocityMax * 100 + 1)/100 ;
 		randomize(2) == 0 ? tmpThing->veloX *= 1 : tmpThing->veloX *= -1;
 		tmpThing->veloY = randomize(thingVelocityMax * 100 + 1)/100 ;
@@ -67,20 +73,21 @@ void createThings() {
 	}
 	
 }
-void createBomb(int x, int y) {
+void createBomb(GLfloat x, GLfloat y) {
 	
-	if (head == NULL) {
-		head = (bomb_t*)malloc(sizeof(bomb_t));
-		if (head == NULL) {
+	if (bombHead == NULL) {
+		bombHead = (bomb_t*)malloc(sizeof(bomb_t));
+		if (bombHead == NULL) {
 			fprintf(stderr, "Error on creating head.\n");
 			exit(1);
 		}
-		head->x = 1;
-		head->next = NULL;
-		return;
+		bombHead->x = x;
+		bombHead->y = y;
+		bombHead->level = 0;
+		bombHead->next = NULL;
 	}
 	else {
-		bomb_t * tmpBomb = head;
+		bomb_t * tmpBomb = bombHead;
 		while (tmpBomb->next!=NULL) {
 			tmpBomb = tmpBomb->next;
 		}
@@ -92,11 +99,57 @@ void createBomb(int x, int y) {
 		tmpBombCreated->next = NULL;
 	}
 }
+void printBombs() {
+	if (bombHead != NULL) {
+		bomb_t * tmpBomb = bombHead;
+		while (tmpBomb->next != NULL) {
+			drawBomb(tmpBomb->x, tmpBomb->y, tmpBomb->level);
+			tmpBomb = tmpBomb->next;
+		}
+		drawBomb(tmpBomb->x, tmpBomb->y, tmpBomb->level);
+	}
+}
+void drawBomb(GLfloat x, GLfloat y, int level) {
+	GLfloat colorx = 0.0f, colory = 0.0f, colorz = 0.0f;
+	if (level == 0) {
+		colorx = 255.0f;
+		colory = 255.0f;
+		colorz = 0.0f;
+	}
+	else if (level == 1) {
+		colorx = 204.0f;
+		colory = 204.0f;
+		colorz = 0.0f;
+	}
+	else if (level == 2) {
+		colorx = 153.0f;
+		colory = 153.0f;
+		colorz = 0.0f;
+	}
+	else if (level == 3) {
+		colorx = 204.0f;
+		colory = 0.0f;
+		colorz = 204.0f;
+	}
+	else if (level == 4) {
+		colorx = 127.0f;
+		colory = 0.0f;
+		colorz = 255.0f;
+	}
+	else return;
+	glColor3f(colorx / 255.0f, colory / 255.0f, colorz / 255.0f);
+	glBegin(GL_TRIANGLE_STRIP);		//using triangle strip instead of polygon which is deprecated after 3.0
+	glVertex2f((x - bombWidth / 2), (y + bombHeigth / 2));		//making the diamond width=3 and height=4, when the center is in (0,0) then the vertexes should be in (0, 2), (-1.5, 0), (0, -2), (1.5, 0)
+	glVertex2f((x + bombWidth / 2), (y + bombHeigth / 2));		//and also adding the center positions of diamond to move it in run time.
+	glVertex2f((x - bombWidth / 2), (y - bombHeigth / 2));
+	glVertex2f((x + bombWidth / 2), (y - bombHeigth / 2));
+	glVertex2f((x - bombWidth / 2), (y + bombHeigth / 2));
+	glEnd();
+}
 
 void printThings() {
 	int i;
 	for (i = 0; i < numberOfThings; i++) {
-		//printf("Thing no:%d, x:%f y:%f veloX:%f veloY:%f level:%d\n", i, things[i].x, things[i].y, things[i].veloX, things[i].veloY, things[i].level);
 		drawThing(things[i].x, things[i].y, things[i].level);
 	}
 }
@@ -112,11 +165,66 @@ void reCalcCoords() {
 		things[i].x += things[i].veloX / FPS;
 		things[i].y += things[i].veloY / FPS;
 		//printf("%f, %f\n", things[i].x, things[i].y);
-		if (things[i].x < 0 || things[i].x > 1 - thingWidth) {
+		if (things[i].x-thingWidth/2 < 0 || things[i].x+thingWidth/2 > 1 ) {
 			things[i].veloX *= -1;
 		}
-		if (things[i].y < thingHeigth || things[i].y > 1) {
+		if (things[i].y -thingHeigth/2< 0 || things[i].y+thingHeigth/2 > 1){
 			things[i].veloY *= -1;
+		}
+	}
+}
+void reCalcBombs() {
+	if (bombHead != NULL) {
+		bomb_t * tmpBomb = bombHead;
+		while (tmpBomb->next != NULL) {
+			levelUpBomb(tmpBomb);
+			tmpBomb = tmpBomb->next;
+		}
+		levelUpBomb(tmpBomb);
+	}
+	printf("Score: %d\n", score);
+}
+void levelUpBomb(bomb_t * tmpBomb) {
+	if (tmpBomb->level < 5) {
+		tmpBomb->level++;
+	}
+}
+void reCalcScore() {
+	if (bombHead != NULL) {
+		bomb_t * tmpBomb = bombHead;
+		while (tmpBomb->next != NULL) {
+			checkBombIntersection(tmpBomb);
+			tmpBomb = tmpBomb->next;
+		}
+		checkBombIntersection(tmpBomb);
+	}
+
+}
+void checkBombIntersection(bomb_t *tmpBomb) {
+	int i;
+	for (int i = 0; i < numberOfThings; i++) {
+		if (fabs(tmpBomb->x - things[i].x) * 2 < (bombWidth + thingWidth) &&
+			fabs(tmpBomb->y - things[i].y) * 2 < (bombHeigth + thingHeigth) &&
+			tmpBomb->level == things[i].level) {
+			//kill the thing, add score
+			//return 1;
+			printf("Thing x:%f,y:%f\nBomb x:%f,y:5f\n", tmpBomb->x, tmpBomb->y, things[i].x, things[i].y);
+			if (tmpBomb->level == 0) {
+				score += scoreLevel[0];
+			}
+			else if (tmpBomb->level == 1) {
+				score += scoreLevel[1];
+			}
+			else if (tmpBomb->level == 2) {
+				score += scoreLevel[2];
+			}
+			else if (tmpBomb->level == 3) {
+				score += scoreLevel[3];
+			}
+			else if (tmpBomb->level == 4) {
+				score += scoreLevel[4];
+			}
+			things[i].level = 5;	//killing the thing, TODO: after the linked list impl. of things, delete the thing after hanging out black for 1 sec.
 		}
 	}
 }
@@ -153,15 +261,15 @@ void drawThing(GLfloat x, GLfloat y, int level) {
 		colorx = 127.0f;
 		colory = 0.0f;
 		colorz = 255.0f;
-	}		
+	}
+	else return;
 	glColor3f(colorx/255, colory/255, colorz/255);
 	glBegin(GL_TRIANGLE_STRIP);		//using triangle strip instead of polygon which is deprecated after 3.0
-	glVertex2f((x),(y));		//making the diamond width=3 and height=4, when the center is in (0,0) then the vertexes should be in (0, 2), (-1.5, 0), (0, -2), (1.5, 0)
-	//printf("%f, %f\n",x,y);
-	glVertex2f((x+ thingWidth), (y));		//and also adding the center positions of diamond to move it in run time.
-	glVertex2f((x+ thingWidth), (y-thingHeigth));
-	glVertex2f((x), (y- thingHeigth));
-	glVertex2f((x), (y));
+	glVertex2f((x - thingWidth / 2), (y + thingHeigth / 2));		//making the diamond width=3 and height=4, when the center is in (0,0) then the vertexes should be in (0, 2), (-1.5, 0), (0, -2), (1.5, 0)
+	glVertex2f((x + thingWidth / 2), (y + thingHeigth / 2));		//and also adding the center positions of diamond to move it in run time.
+	glVertex2f((x - thingWidth / 2), (y - thingHeigth / 2));
+	glVertex2f((x + thingWidth / 2), (y - thingHeigth / 2));
+	glVertex2f((x - thingWidth / 2), (y + thingHeigth / 2));
 	glEnd();
 }
 
@@ -200,6 +308,7 @@ void myDisplay()
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	printThings();
+	printBombs();
 	glFlush();
 	glutSwapBuffers();
 }
@@ -231,14 +340,13 @@ void myArrow(int key, int x, int y) {
 		
 		break;
 	case GLUT_KEY_LEFT:
-		createBomb(x, calcGlutToGLCord(y));
-		printf("Bomb placed in %d, %d\n",x, calcGlutToGLCord(y));
+		
 		break;
 	case GLUT_KEY_RIGHT:
 		
 		break;
 	}
-	glutPostRedisplay();
+	//glutPostRedisplay();
 }
 //Changes the circles position according to the mouse position
 void leftClickMotion(int x, int y) {
@@ -256,7 +364,9 @@ void myMouse(int b, int s, int x, int y) {
 		glutMotionFunc(leftClickMotion);			//if left click is pressed, than making the motion function to leftclickmotion function which changes the circles position
 		if (s == GLUT_DOWN) {
 			//printf("DOWN\n");
-			
+			createBomb((x)/ (GLfloat)windowWidth, (calcGlutToGLCord(y))/ (GLfloat)windowHeight);
+			reCalcScore();
+			printf("Bomb placed in %d, %d\n", x, calcGlutToGLCord(y));
 		}
 		else if (s == GLUT_UP) {
 			//printf("UP\n");
@@ -276,12 +386,22 @@ void myMouse(int b, int s, int x, int y) {
 	//glutPostRedisplay();
 }
 void myTimeOut(int id) {
+	
 	reCalcCoords();
+	reCalcScore();
 	glutPostRedisplay();				//redisplaying
+
 	if (pause==0) {
 		glutTimerFunc(1.0 / FPS * 1000, myTimeOut, 0);	//setting the timer again for desired FPS value
 	}
 	
+}
+void myTimerForBombs(int id) {
+	reCalcBombs();
+	if (pause == 0) {
+		glutTimerFunc(1.0 * 1000, myTimerForBombs, 0);
+	}
+
 }
 void pauseGame() {
 	if (pause == 0) {
@@ -290,6 +410,7 @@ void pauseGame() {
 	else {
 		pause = 0;
 		glutTimerFunc(1.0 / FPS * 1000, myTimeOut, 0);
+		glutTimerFunc(1.0 * 1000, myTimerForBombs, 0);
 	}
 }
 void singleStep() {
@@ -298,6 +419,7 @@ void singleStep() {
 	int i;
 	for (i = 0; i < FPS; i++)
 		reCalcCoords();
+	reCalcBombs();
 	glutPostRedisplay();
 	printDebug();
 }
@@ -318,6 +440,7 @@ int main(int argc, char **argv)
 	glutReshapeFunc(myReshape);     // call myReshape if window is resized
 	glutMouseFunc(myMouse);         // call in mouse event 
 	glutTimerFunc(1.0 / FPS * 1000, myTimeOut, 0);		//setting the timer for desired FPS value
+	glutTimerFunc(1.0 * 1000, myTimerForBombs, 0);		//setting the timer for desired FPS value
 	glutSpecialFunc(myArrow);					//setting the special func.
 
 
