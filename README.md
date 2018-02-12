@@ -11,7 +11,7 @@ S: Single step, pauses the game and moves the game for 1 second and logs debug i
 
 Features:
 1. Object movement
-2.Pause/Resume/SingleStep
+2. Pause/Resume/SingleStep
 3. Bomb movement
 4. Bomb explosion when hits a box
 5. Score displaying
