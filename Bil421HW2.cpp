@@ -734,7 +734,6 @@ int main(int argc, char **argv)
 	glutReshapeFunc(myReshape);     // call myReshape if window is resized
 	glutMouseFunc(myMouse);         // call in mouse event 
 	
-	glutSpecialFunc(myArrow);					//setting the special func.
 	
 	
 
