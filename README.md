@@ -10,14 +10,14 @@ Left Click: Places a bomb to your mouses location.
 S: Single step, pauses the game and moves the game for 1 second and logs debug information.
 
 Features:
-Object movement
-Pause/Resume/SingleStep
-Bomb movement
-Bomb explosion when hits a box
-Score displaying
-Time Displaying(Clock/Remaining Time)
-Additional Explosion Animation
-Bomb depth visualization
-Main menu, start button
-Implementation with data structures instead of using array supports the change of total number of boxes.
+1. Object movement
+2.Pause/Resume/SingleStep
+3. Bomb movement
+4. Bomb explosion when hits a box
+5. Score displaying
+6. Time Displaying(Clock/Remaining Time)
+7. Additional Explosion Animation
+8. Bomb depth visualization
+9. Main menu, start button
+10. Implementation with data structures instead of using array supports the change of total number of boxes.
 
