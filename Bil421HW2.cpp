@@ -11,6 +11,9 @@
 #endif
 //Burak Han Demirbilek - 151201022
 
+
+//Used doubly linked list to keep the thing and bomb objects. 
+//The reason of the doubly linked list is, it is very easy to implement add, remove and the search through the list.
 typedef struct Thing {
 	GLfloat x;
 	GLfloat y;
@@ -29,6 +32,8 @@ typedef struct bomb {
 	struct bomb * next;
 	struct bomb * previous;
 } bomb_t;
+
+//Function prototypes.
 void createThing(int level);
 double randomize(int maxVal);
 void printThings();
@@ -46,8 +51,8 @@ void levelUpBomb(bomb_t * tmpBomb);
 void checkBombIntersection(bomb_t *tmpBomb);
 void deleteExplodedBombs();
 void checkGameOver();
-// global variable declarations
 
+// global variable declarations, mostly it explains ownselfs.
 GLint windowHeight = 800, windowWidth = 800; //global windowHeight and windowWidth variables, default is 400x400
 int numberOfThings = 20;
 GLfloat thingWidth = 0.1f;
@@ -69,7 +74,7 @@ thing_t * thingHead = NULL;
 bomb_t * bombHead = NULL;
 
 
-
+//Creates things accordingly to numberOfThings global variable.
 void createThings() {
 	int i;
 	for (i = 0; i < numberOfThings; i++) {
@@ -77,6 +82,7 @@ void createThings() {
 	}
 	
 }
+//Creates a thing object and adds list, it takes a id parameter to make the things unique and with that, we can easyly find the thing with id later.
 void createThing(int id) {
 	if (thingHead == NULL) {
 		thingHead = (thing_t*)malloc(sizeof(thing_t));
@@ -114,6 +120,7 @@ void createThing(int id) {
 		tmpThingCreated->previous = tmpThing;
 	}
 }
+//Creates the bomb object and adds end of the list
 void createBomb(GLfloat x, GLfloat y) {
 	
 	if (bombHead == NULL) {
@@ -142,6 +149,7 @@ void createBomb(GLfloat x, GLfloat y) {
 		tmpBombCreated->previous = tmpBomb;
 	}
 }
+//This function loops through the bomblist and draws every object in the list.
 void printBombs() {
 	if (bombHead != NULL) {
 		bomb_t * tmpBomb = bombHead;
@@ -152,6 +160,7 @@ void printBombs() {
 		drawBomb(tmpBomb->x, tmpBomb->y, tmpBomb->level);
 	}
 }
+//This function draws a bomb object with given x, y and level parameters
 void drawBomb(GLfloat x, GLfloat y, int level) {
 	GLfloat colorx = 0.0f, colory = 0.0f, colorz = 0.0f;
 	if (level == 0) {
@@ -191,7 +200,7 @@ void drawBomb(GLfloat x, GLfloat y, int level) {
 	glVertex2f((x - tmpWidth), (y + tmpHeigth));
 	glEnd();
 }
-
+//This function loops through the thinglist and draws every object in the list. 
 void printThings() {
 	if (thingHead != NULL) {
 		thing_t * tmpThing = thingHead;
@@ -202,6 +211,7 @@ void printThings() {
 		drawThing(tmpThing->x, tmpThing->y, tmpThing->level);
 	}
 }
+//This function draws a explosion effect, a red circle and a yellow circle placed same center with different radius 
 void drawExplosion(GLfloat x, GLfloat y) {
 	glColor3f(251.0 / 255, 23.0 / 255, 23.0 / 255);	//the color of the circle is blue
 	glBegin(GL_TRIANGLE_FAN);
@@ -225,6 +235,7 @@ void drawExplosion(GLfloat x, GLfloat y) {
 	}
 	glEnd();
 }
+//This function draws a thing object with given x,y and level parameters
 void drawThing(GLfloat x, GLfloat y, int level) {
 	if (level == 5) {
 		drawExplosion(x, y);
@@ -271,7 +282,7 @@ void drawThing(GLfloat x, GLfloat y, int level) {
 	glEnd();
 	
 }
-
+//This function loops through the lists and prints debug information.
 void printDebug() {
 	if (thingHead != NULL) {
 		thing_t * tmpThing = thingHead;
@@ -290,6 +301,7 @@ void printDebug() {
 		printf("Bomb, x:%f, y:%f, level:%f\n", tmpBomb->x, tmpBomb->x, tmpBomb->level);
 	}
 }
+//This function calculates the new cordinates of the things and checks if it hits the walls. If yes, then reflects from the wall
 void reCalcCoords() {
 	if (thingHead != NULL) {
 		thing_t * tmpThing = thingHead;
@@ -314,6 +326,7 @@ void reCalcCoords() {
 		}
 	}
 }
+//This function iterates through the thinglist and searches for the thing with the given id
 thing_t *searchThing(int id) {
 	if (thingHead != NULL) {
 		thing_t * tmpThing = thingHead;
@@ -325,6 +338,7 @@ thing_t *searchThing(int id) {
 	}
 	return NULL;
 }
+//This function deletes the exploded things
 void deleteExplodedThings(int id) {
 	thing_t *tmpThing = searchThing(id);
 	if (tmpThing->previous != NULL) {
@@ -340,6 +354,7 @@ void deleteExplodedThings(int id) {
 	}
 	
 }
+//This function deletes the exploded bombs
 void deleteExplodedBombs() {
 	if (bombHead != NULL) {
 		bomb_t * tmpBomb = bombHead;
@@ -367,6 +382,7 @@ void deleteExplodedBombs() {
 		
 	}
 }
+//This function recalculates the bombs level
 void reCalcBombs() {
 	if (bombHead != NULL) {
 		bomb_t * tmpBomb = bombHead;
@@ -376,14 +392,14 @@ void reCalcBombs() {
 		}
 		levelUpBomb(tmpBomb);
 	}
-	printf("Score: %d\n", score);
-	printf("Time elapsed: %d seconds\n", timeElapsed);
 }
+//This function increases the level of the bomb when called
 void levelUpBomb(bomb_t * tmpBomb) {
 	if (tmpBomb->level < 5) {
 		tmpBomb->level++;
 	}
 }
+//This function re calculates the score of the game.
 void reCalcScore() {
 	deleteExplodedBombs();
 	if (bombHead != NULL) {
@@ -397,6 +413,7 @@ void reCalcScore() {
 	
 
 }
+//This function checks the bomb given in parameter intersects with any things
 void checkBombIntersection(bomb_t *tmpBomb) {
 	if (thingHead != NULL) {
 		thing_t * tmpThing = thingHead;
@@ -406,7 +423,7 @@ void checkBombIntersection(bomb_t *tmpBomb) {
 				tmpBomb->level == tmpThing->level) {
 				//kill the thing, add score
 				//return 1;
-				printf("Thing x:%f,y:%f\nBomb x:%f,y:%f\n", tmpBomb->x, tmpBomb->y, tmpThing->x, tmpThing->y);
+				//printf("Thing x:%f,y:%f\nBomb x:%f,y:%f\n", tmpBomb->x, tmpBomb->y, tmpThing->x, tmpThing->y);
 				if (tmpBomb->level == 0) {
 					score += scoreLevel[0];
 				}
@@ -433,7 +450,7 @@ void checkBombIntersection(bomb_t *tmpBomb) {
 			tmpBomb->level == tmpThing->level) {
 			//kill the thing, add score
 			//return 1;
-			printf("Thing x:%f,y:%f\nBomb x:%f,y:%f\n", tmpBomb->x, tmpBomb->y, tmpThing->x, tmpThing->y);
+			//printf("Thing x:%f,y:%f\nBomb x:%f,y:%f\n", tmpBomb->x, tmpBomb->y, tmpThing->x, tmpThing->y);
 			if (tmpBomb->level == 0) {
 				score += scoreLevel[0];
 			}
@@ -454,13 +471,16 @@ void checkBombIntersection(bomb_t *tmpBomb) {
 		}
 	}
 }
+//This function generates a uniform random value with the range of 0 to maxVal, maxVal is not included.
 double randomize(int maxVal) {
 	double r = rand()%(maxVal);      // returns a pseudo-random integer between 0 and RAND_MAX
 	return r;
 }
+//This function simply transforms glut y cords to gl cords
 int calcGlutToGLCord(int y) {
 	return windowHeight - y;
 }
+//This function prints text to the screen
 void print(GLfloat x, GLfloat y, char *string)
 {
 	glColor3d(0.0, 0.0, 0.0);
@@ -475,6 +495,7 @@ void print(GLfloat x, GLfloat y, char *string)
 		glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, string[i]);
 	}
 };
+//First initilization function which seeds the random function and calls the createThings function.
 void myInit()
 {
 	glClearColor(1, 1, 1, 1.0);		// Setting the background color to white
@@ -483,6 +504,7 @@ void myInit()
 	createThings();
 	
 }
+//Reshapes the screen when screen size changes.
 void myReshape(int winWidth, int winHeight)
 {
 	//setting the new window height and width to our global variables.
@@ -502,8 +524,7 @@ void myReshape(int winWidth, int winHeight)
 	glutPostRedisplay();
 
 }
-
-//This function draws circle for our assignment
+//The display function for the game, which prints the things, bombs and some text.
 void myDisplay()
 {
 	//clearing the window.
@@ -534,6 +555,7 @@ void myDisplay()
 	glFlush();
 	glutSwapBuffers();
 }
+//Draws a button
 void drawButton() {
 
 	glColor3f(225 / 255.0, 247 / 255.0, 213/ 255.0);
@@ -547,6 +569,7 @@ void drawButton() {
 	char strMsg[150] = "Start!";
 	print(0.45, 0.4, strMsg);
 }
+//The display function for the welcome screen, prints some information about the game
 void myWelcomeDisplay()
 {
 	//clearing the window.
@@ -570,6 +593,7 @@ void myWelcomeDisplay()
 	glFlush();
 	glutSwapBuffers();
 }
+//Checks the game is over or not
 void checkGameOver() {
 	int gameActive = 0;
 	if (thingHead != NULL) {
@@ -590,8 +614,7 @@ void checkGameOver() {
 	}
 	if (timeElapsed > timeLimit) gameOver = 1;
 }
-
-
+//Keyboard callback function
 void myKeyboard(unsigned char key, int x, int y)
 {
 	switch (key)
@@ -607,35 +630,7 @@ void myKeyboard(unsigned char key, int x, int y)
 	}
 	//glutPostRedisplay();
 }
-void myArrow(int key, int x, int y) {
-	int state = glutGetModifiers();
-	switch (key)
-	{
-	case GLUT_KEY_UP:
-		
-		break;
-	case GLUT_KEY_DOWN:
-		
-		break;
-	case GLUT_KEY_LEFT:
-		
-		break;
-	case GLUT_KEY_RIGHT:
-		
-		break;
-	}
-	//glutPostRedisplay();
-}
-//Changes the circles position according to the mouse position
-void leftClickMotion(int x, int y) {
-	
-	
-}
-//Changes the diamonds position according to the mouse position
-void rightClickMotion(int x, int y) {
-																						//printf("Right: x:%f, y:%f\n", diamondPosX, diamondPosY);
-	//glutPostRedisplay();
-}
+//The timer for the displaying the screen, FPS is the framepersecond and this function calls FPS times in a second.
 void myTimeOut(int id) {
 
 	reCalcCoords();
@@ -647,6 +642,7 @@ void myTimeOut(int id) {
 	}
 
 }
+//A timer for bombs with 1 second delay
 void myTimerForBombs(int id) {
 	reCalcBombs();
 	timeElapsed++;
@@ -656,10 +652,10 @@ void myTimerForBombs(int id) {
 	}
 
 }
+//Callback function for mouse clicks
 void myMouse(int b, int s, int x, int y) {
 	switch (b) {
 	case GLUT_LEFT_BUTTON:
-		glutMotionFunc(leftClickMotion);			//if left click is pressed, than making the motion function to leftclickmotion function which changes the circles position
 		if (s == GLUT_DOWN) {
 			if (start == 0) {
 				if (x*1.0 / windowWidth > 0.3 &&x*1.0 / windowWidth<0.7&&
@@ -677,7 +673,7 @@ void myMouse(int b, int s, int x, int y) {
 				if (pause != 1 && gameOver != 1) {
 					createBomb((x) / (GLfloat)windowWidth, (calcGlutToGLCord(y)) / (GLfloat)windowHeight);
 					reCalcScore();
-					printf("Bomb placed in %d, %d\n", x, calcGlutToGLCord(y));
+					//printf("Bomb placed in %d, %d\n", x, calcGlutToGLCord(y));
 				}
 			}
 		}
@@ -686,24 +682,10 @@ void myMouse(int b, int s, int x, int y) {
 			
 		}
 		break;
-	case GLUT_RIGHT_BUTTON:
-		glutMotionFunc(rightClickMotion);			//if right click is pressed, than making the motion function to rightclickmotion function which changes the diamons position
-		if (s == GLUT_DOWN) {
-			//printf("DOWN\n");
-		}
-		else if (s == GLUT_UP) {
-			//printf("UP\n");
-		}
-		break;
-	case GLUT_MIDDLE_BUTTON:
-		if (s == GLUT_DOWN) {
-			pauseGame();
-		}
-		break;
 	}
 	//glutPostRedisplay();
 }
-
+//This function pauses and resumes the game
 void pauseGame() {
 	if (gameOver != 1) {
 		if (pause == 0) {
@@ -718,6 +700,7 @@ void pauseGame() {
 		
 	}
 }
+//This function moves the game 1 second later, to do this, simply calling reCalcCoords FPS times, increases the timeElapsed 1 and printing debug information.
 void singleStep() {
 	if (gameOver != 1) {
 		if (pause == 0)
@@ -733,6 +716,7 @@ void singleStep() {
 		printDebug();
 	}
 }
+//Main function for the program
 int main(int argc, char **argv)
 {
 	glutInit(&argc, argv);   //Initialize glut and gl
