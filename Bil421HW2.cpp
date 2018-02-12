@@ -57,6 +57,7 @@ GLfloat bombWidth = 0.04f;
 GLfloat bombHeigth = 0.04f;
 int pause = 0;
 int gameOver = 0;
+int start = 0;
 int score = 0;
 int timeElapsed = 0;
 int timeLimit = 60;
@@ -533,6 +534,42 @@ void myDisplay()
 	glFlush();
 	glutSwapBuffers();
 }
+void drawButton() {
+
+	glColor3f(225 / 255.0, 247 / 255.0, 213/ 255.0);
+	glBegin(GL_TRIANGLE_STRIP);		
+	glVertex2f(0.3, 0.3);		
+	glVertex2f(0.3, 0.5);			
+	glVertex2f(0.7, 0.5);
+	glVertex2f(0.7, 0.3);
+	glVertex2f(0.3, 0.3);
+	glEnd();
+	char strMsg[150] = "Start!";
+	print(0.45, 0.4, strMsg);
+}
+void myWelcomeDisplay()
+{
+	//clearing the window.
+
+	glClearColor(201 / 255, 201 / 255.0, 255/ 255.0, 1.0);
+	glClear(GL_COLOR_BUFFER_BIT);
+	char strMsg[150] = "Welcome to my 2D video game. ";
+	print(0.3, 0.8, strMsg);
+	strcpy_s(strMsg, "The objective of the game is to destroy all the evil boxes");
+	print(0.12, 0.75, strMsg);
+	strcpy_s(strMsg, "(Colored with Purple and Pink) while destroying as few good");
+	print(0.1, 0.7, strMsg);
+	strcpy_s(strMsg, "boxes as possible(Colored with yellow and green)");
+	print(0.17, 0.65, strMsg);
+	strcpy_s(strMsg, "Controls: P = Pause, Left Click = Place Bomb, S = SingleStep");
+	print(0.1, 0.6, strMsg);
+	strcpy_s(strMsg, "Press the button to start");
+	print(0.35, 0.55, strMsg);
+	drawButton();
+
+	glFlush();
+	glutSwapBuffers();
+}
 void checkGameOver() {
 	int gameActive = 0;
 	if (thingHead != NULL) {
@@ -599,19 +636,50 @@ void rightClickMotion(int x, int y) {
 																						//printf("Right: x:%f, y:%f\n", diamondPosX, diamondPosY);
 	//glutPostRedisplay();
 }
+void myTimeOut(int id) {
+
+	reCalcCoords();
+	reCalcScore();
+	glutPostRedisplay();				//redisplaying
+
+	if (pause == 0 && gameOver == 0) {
+		glutTimerFunc(1.0 / FPS * 1000, myTimeOut, 0);	//setting the timer again for desired FPS value
+	}
+
+}
+void myTimerForBombs(int id) {
+	reCalcBombs();
+	timeElapsed++;
+	checkGameOver();
+	if (pause == 0) {
+		glutTimerFunc(1.0 * 1000, myTimerForBombs, 0);
+	}
+
+}
 void myMouse(int b, int s, int x, int y) {
 	switch (b) {
 	case GLUT_LEFT_BUTTON:
 		glutMotionFunc(leftClickMotion);			//if left click is pressed, than making the motion function to leftclickmotion function which changes the circles position
 		if (s == GLUT_DOWN) {
-			//printf("DOWN\n");
-			if (pause != 1 && gameOver!=1) {
-				createBomb((x) / (GLfloat)windowWidth, (calcGlutToGLCord(y)) / (GLfloat)windowHeight);
-				reCalcScore();
-				printf("Bomb placed in %d, %d\n", x, calcGlutToGLCord(y));
-			}
+			if (start == 0) {
+				if (x*1.0 / windowWidth > 0.3 &&x*1.0 / windowWidth<0.7&&
+					calcGlutToGLCord(y)*1.0 / windowHeight>0.3 &&calcGlutToGLCord(y)*1.0 / windowHeight < 0.5) {
+
+					start = 1;
+					myInit();
+					glutDisplayFunc(myDisplay);
+					glutTimerFunc(1.0 / FPS * 1000, myTimeOut, 0);		//setting the timer for desired FPS value
+					glutTimerFunc(1.0 * 1000, myTimerForBombs, 0);		//setting the timer for desired FPS value
+				}
 				
-			
+			}
+			else {
+				if (pause != 1 && gameOver != 1) {
+					createBomb((x) / (GLfloat)windowWidth, (calcGlutToGLCord(y)) / (GLfloat)windowHeight);
+					reCalcScore();
+					printf("Bomb placed in %d, %d\n", x, calcGlutToGLCord(y));
+				}
+			}
 		}
 		else if (s == GLUT_UP) {
 			//printf("UP\n");
@@ -635,26 +703,7 @@ void myMouse(int b, int s, int x, int y) {
 	}
 	//glutPostRedisplay();
 }
-void myTimeOut(int id) {
-	
-	reCalcCoords();
-	reCalcScore();
-	glutPostRedisplay();				//redisplaying
 
-	if (pause==0 &&gameOver==0) {
-		glutTimerFunc(1.0 / FPS * 1000, myTimeOut, 0);	//setting the timer again for desired FPS value
-	}
-	
-}
-void myTimerForBombs(int id) {
-	reCalcBombs();
-	timeElapsed++;
-	checkGameOver();
-	if (pause == 0) {
-		glutTimerFunc(1.0 * 1000, myTimerForBombs, 0);
-	}
-
-}
 void pauseGame() {
 	if (gameOver != 1) {
 		if (pause == 0) {
@@ -678,6 +727,7 @@ void singleStep() {
 		int i;
 		for (i = 0; i < FPS; i++)
 			reCalcCoords();
+		timeElapsed++;
 		reCalcBombs();
 		glutPostRedisplay();
 		printDebug();
@@ -695,16 +745,16 @@ int main(int argc, char **argv)
 	glutCreateWindow("Bil 421 - Assignment 2 - Burak Han Demirbilek"); 	// create the window
 
 																		//register callbacks
-	glutDisplayFunc(myDisplay);		//  call myDisplay to redraw window
+	glutDisplayFunc(myWelcomeDisplay);		//  call myWelcomeDisplay to redraw window
 	glutKeyboardFunc(myKeyboard);   // call myKeyboard when key is hit
 	glutReshapeFunc(myReshape);     // call myReshape if window is resized
 	glutMouseFunc(myMouse);         // call in mouse event 
-	glutTimerFunc(1.0 / FPS * 1000, myTimeOut, 0);		//setting the timer for desired FPS value
-	glutTimerFunc(1.0 * 1000, myTimerForBombs, 0);		//setting the timer for desired FPS value
+	
 	glutSpecialFunc(myArrow);					//setting the special func.
+	
+	
 
-
-	myInit();				// our own initializations
+					// our own initializations
 	
 
 	glutMainLoop();			// pass control to GLUT, start it running
