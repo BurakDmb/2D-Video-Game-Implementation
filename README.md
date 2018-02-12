@@ -21,3 +21,12 @@ Features:
 * Main menu, start button
 * Implementation with data structures instead of using array supports the change of total number of boxes.
 
+Images:
+
+[![image](https://i.hizliresim.com/4aMRkq.png)](https://hizliresim.com/4aMRkq)
+
+[![image](https://i.hizliresim.com/JQlE4n.png)](https://hizliresim.com/JQlE4n)
+
+[![image](https://i.hizliresim.com/OoLdZA.png)](https://hizliresim.com/OoLdZA)
+
+[![image](https://i.hizliresim.com/0EB2kL.png)](https://hizliresim.com/0EB2kL)
