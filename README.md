@@ -23,10 +23,11 @@ Features:
 
 Images:
 
-[![image](https://i.hizliresim.com/4aMRkq.png)](https://hizliresim.com/4aMRkq)
+![bil421-ss1](https://user-images.githubusercontent.com/15220477/53600799-8357c000-3bbb-11e9-922f-96fd649dcef6.png)
 
-[![image](https://i.hizliresim.com/JQlE4n.png)](https://hizliresim.com/JQlE4n)
+![bil421-ss2](https://user-images.githubusercontent.com/15220477/53600808-88b50a80-3bbb-11e9-9ee0-b959a7ceefd9.png)
 
-[![image](https://i.hizliresim.com/OoLdZA.png)](https://hizliresim.com/OoLdZA)
+![bil421-ss3](https://user-images.githubusercontent.com/15220477/53600810-8b176480-3bbb-11e9-9fee-e8085fc71f31.png)
 
-[![image](https://i.hizliresim.com/0EB2kL.png)](https://hizliresim.com/0EB2kL)
+![bil421-ss4](https://user-images.githubusercontent.com/15220477/53600814-8d79be80-3bbb-11e9-9718-7177958f282f.png)
+
